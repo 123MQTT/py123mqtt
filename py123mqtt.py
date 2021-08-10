@@ -40,7 +40,21 @@ class Connection:
         client.publish('public-data/' + Messaging.username + '/' + self.username + '/publickey', Messaging.vk.to_string().hex(), 2)
 
     def cb_process_message(self, client, userdata, msg):
-        print(msg.topic + ': ' + msg.payload.decode())
+        # got a message
+        received = json.loads(msg.payload)
+        # decrypting message when shared secret is obtained
+        if (self.shared_secret != 'none' and received['encryption'] != 'none'):
+            decrypto = AES.new(self.shared_secret, AES.MODE_CBC, bytes.fromhex(received['iv']))
+            decrypted_text_bytes = decrypto.decrypt(bytes.fromhex(received['message']))
+            print(msg.topic + ': ' + decrypted_text_bytes.decode())
+        elif (self.shared_secret == 'none' and received['encryption'] != 'none'):
+            print('Warning: no shared secret to decrypt message')
+            print(msg.topic + ': ' + received['message'])
+        elif (received['encryption'] == 'none'):
+            print('Warning: received unencrypted message')
+            print(msg.topic + ': ' + received['message'])
+        else:
+            pass
 
 
 class Messaging:
@@ -82,9 +96,9 @@ class Messaging:
         self.mqttClient.publish('public-data/' + self.username + '/' + Connection.username + '/request', 'publickey', 2)
 
     def send_message(self, Connection, message):
-        print('sending message')
         if (Connection.chat_mode == CHAT_MODE_UNSECURED):
             # send unencrypted message
+            print('Warning: sending unencrypted message')
             message = {"message" : message, "encryption" : "none", "iv" : "none"}
             self.mqttClient.publish('public-data/' + self.username + '/' + Connection.username + '/message', json.dumps(message), 2)
         else:
