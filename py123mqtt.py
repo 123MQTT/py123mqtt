@@ -19,12 +19,6 @@ class Connection:
         self.chat_mode = CHAT_MODE_UNSECURED
         self.publickey = 'none'
         self.shared_secret = 'none'
-    
-    def chat_mode(self, mode):
-        self.chat_mode = mode
-    
-    def list_connections(self):
-        print(self.connections)
 
     def cb_process_publickey(self, client, userdata, msg):
         # received public key and generate shared secret
