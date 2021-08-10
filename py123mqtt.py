@@ -50,6 +50,8 @@ class Connection:
         else:
             pass
 
+# END Class Connection
+
 
 class Messaging:
     'Messaging Class 123MQTT'
@@ -95,7 +97,7 @@ class Messaging:
             print('Warning: sending unencrypted message')
             message = {"message" : message, "encryption" : "none", "iv" : "none"}
             self.mqttClient.publish('public-data/' + self.username + '/' + Connection.username + '/message', json.dumps(message), 2)
-        else:
+        elif (Connection.chat_mode == CHAT_MODE_ENCRYPTED):
             # send encrypted message
             self.signature = self.sk.sign(pad(message.encode(), AES.block_size))
             iv = os.urandom(16)
@@ -104,6 +106,11 @@ class Messaging:
             encrypted_text_hex = encrypted_text_bytes.hex()
             message = {"message" : encrypted_text_hex, "encryption" : "AES-128-CBC", "iv" : iv.hex()}
             self.mqttClient.publish('public-data/' + self.username + '/' + Connection.username + '/message', json.dumps(message), 2)
+        elif (Connection.chat_mode == CHAT_MODE_SIGNED):
+            # TBD
+            pass
+        else:
+            pass
 
     def show_info(self):
         print('')
@@ -117,4 +124,4 @@ class Messaging:
     def loop_forever(self):
         self.mqttClient.loop_forever()
 
-# END Class Messaging123Mqtt
+# END Class Messaging
